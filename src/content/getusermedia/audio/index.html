@@ -34,28 +34,72 @@
 
     <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a> <span>getUserMedia, audio only</span>
     </h1>
-
-    <audio id="gum-local" controls autoplay></audio>
-
-    <p class="warning">Warning: if you're not using headphones, pressing play will cause feedback.</p>
-
-    <p>Render the audio stream from an audio-only <code>getUserMedia()</code> call with an audio element.</p>
-
-    <p>The <code>MediaStream</code> object <code><em>stream</em></code> passed to the <code>getUserMedia()</code>
-        callback is in global scope, so you can inspect it from the console.</p>
-    <div>
-        <span id="errorMsg"></span>
+    <div id="audio-wrapper">
+        <audio id="gum-local" controls></audio>
     </div>
-    
-    <a href="https://github.com/webrtc/samples/tree/gh-pages/src/content/getusermedia/audio"
-       title="View source for this page on GitHub" id="viewSource">View source on GitHub</a>
 
+    <button id="start" onclick="onStart()">start</button>
+    <button id="replay" onclick="onReplay()">replay</button>
+    <h2>Connecting a Bluetooth headset will cause iOS 15 to play a very weird sound.</h2>
+    <p>
+        Two cases, one sounds like a baby, another sounds like a monster.<br>
+        Devices: iOS 15.2 Safari, iPhone 12.
+        
+
+        <div>
+            Steps to reproduce:
+        </div>
+            
+            <ul>
+                <strong>Baby voice: </strong>
+                <li>1. Open this page on iOS Safari.</li>
+                <li>2. Connect a bluetooth headset.</li>
+                <li>3. Close Safari and reopen it.</li>
+                <li>4. Click "start" to capture microphone and play. Try to say something and you can hear your voice.</li>
+                <li>5. Disconnect bluetooth headset, then audio will output from phone speaker.</li>
+                <li>6. Click "replay" to re-create audio element to replay audio.</li>
+                <li>7. Now, say something, your voice will sounds like a baby!</li>
+            </ul>
+
+            <ul>
+                <strong>Monster voice:</strong>
+                <li>1. Open this page on iOS Safari.</li>
+                <li>2. Don't connect bluetooth headset.</li>
+                <li>3. Close Safari and reopen it.</li>
+                <li>4. Click "start" to capture microphone and play. Try to say something and you can hear your voice.</li>
+                <li>5. Connect a bluetooth headset, then audio will output from bluetooth headset.</li>
+                <li>6. Click "replay" to re-create audio element to replay audio.</li>
+                <li>7. Now, say something, your voice will sounds like a monster!</li>
+            </ul>
+    </p>
 </div>
+<script>
+    function onStart() {
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(mediaStream => {
+            const audio = document.querySelector("#gum-local");
+            audio.srcObject = mediaStream;
+            audio.play().then(() => {
+                document.querySelector('#start').disabled = true;
+            });
+        });
+    }
+    function onReplay() {
+        const wrapper = document.querySelector('#audio-wrapper');
+        // stop audio playback
+        const audio = document.querySelector("#gum-local");
+        const mediaStream = audio.srcObject;
+        audio.srcObject = null;
+        wrapper.removeChild(audio);
 
-<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-<script src="js/main.js"></script>
-
-<script src="../../../js/lib/ga.js"></script>
+        // create a new audio element to restart audio playback
+        const newAudio = document.createElement('audio');
+        newAudio.id = 'gum-local'
+        newAudio.srcObject = mediaStream;
+        newAudio.controls = true;
+        newAudio.play();
+        wrapper.appendChild(newAudio);
+    }
+</script>
 
 </body>
 </html>
